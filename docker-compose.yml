@@ -1,0 +1,25 @@
+version : '3'
+
+services:
+    lb:
+        image: haproxy
+        ports:
+            - "8082:8080"
+        volumes:
+            - ./haproxy:/usr/local/etc/haproxy
+    orderservice1:
+        image: orderservice
+        environment:
+            - APPID=1111
+    orderservice2:
+        image: orderservice
+        environment:
+            - APPID=2222
+    orderservice3:
+        image: orderservice
+        environment:
+            - APPID=3333
+    orderservice4:
+        image: orderservice
+        environment:
+            - APPID=4444
