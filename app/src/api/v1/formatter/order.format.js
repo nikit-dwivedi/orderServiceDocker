@@ -58,6 +58,7 @@ module.exports = {
                 sellerId: outletData.sellerId,
                 outletId: outletData.outletId,
                 outletName: outletData.outletName,
+                outletPhone:outletData.phone,
                 outletArea: outletData.area,
                 outletAddress: outletData.shopAddress,
                 outletLongitude: outletData.longitude,

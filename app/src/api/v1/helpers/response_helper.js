@@ -106,14 +106,18 @@ async function onError(res, message, error) {
 };
 
 async function sendResponse(res, statusCode, status, message, error, items) {
-    res.status(200);
-    res.json({
+    let response = {
         status: status,
         subCode: statusCode,
         message: message,
         error: error,
         items: items
-    });
+    }
+    if (res.tokenInfo) {
+        response.tokenInfo = res.tokenInfo
+    }
+    res.status(200);
+    res.json(response);
 }
 
 

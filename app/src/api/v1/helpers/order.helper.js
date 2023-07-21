@@ -4,6 +4,7 @@ const { post, get } = require('../services/axios.service');
 const { randomBytes } = require('node:crypto');
 const { merchantNotification, statusNotification, sendNotification, sendCustomerNotification, customerNotification, adminNotification } = require('../services/notification.service');
 const { assignPartner, unassignPartner } = require('../services/delivery.service');
+const moment = require("moment")
 const { token } = require('morgan');
 const res = require('express/lib/response');
 
@@ -210,7 +211,7 @@ module.exports = {
 
                 if (orderStatus == 'pending') {
                     await sendNotification(customId, `You have received an order on ${changeData.outlet.outletName}`, changeData.outlet.outletId)
-                    await merchantNotification(orderId, customId)
+                    await merchantNotification(`new order received on ${changeData?.outlet?.outletName}`, customId)
                     await adminNotification(orderId)
                 } else {
                     if (orderStatus == 'preparing') {
@@ -393,8 +394,19 @@ module.exports = {
                     $lt: new Date(to)
                 }
             }
-            const orderData = await orderModel.find(query).select('-_id -__v -productList._id -client._id -outlet._id -patner._id -amount._id -timing._id -createdAt -updatedAt')
-            return orderData[0] ? { status: true, message: "order list", data: orderData.reverse() } : { status: false, message: "no orders found", data: orderData };
+            const orderData = await orderModel.find(query).select('-_id -__v -productList._id -client._id -outlet._id -patner._id -amount._id -timing._id -createdAt').lean()
+            let newList = orderData.map((order) => {
+                order.date = moment(order.updatedAt).calendar(null, {
+                    sameDay: '[Today] h:m A',
+                    lastDay: '[Yesterday] h:m A',
+                    lastWeek: '[Last] dddd h:m A',
+                    sameElse: 'MMM DD, YYYY h:m A'
+                });
+                console.log(order.date);
+                delete order.updatedAt
+                return order
+            })
+            return newList[0] ? { status: true, message: "order list", data: newList.reverse() } : { status: false, message: "no orders found", data: newList };
         } catch (error) {
             console.log(error); return { status: false, message: error.message, data: [] }
         }

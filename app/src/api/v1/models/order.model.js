@@ -47,6 +47,9 @@ const outletSchema = new Schema({
     outletName: {
         type: String
     },
+    outletPhone: {
+        type: String
+    },
     outletArea: {
         type: String
     },
