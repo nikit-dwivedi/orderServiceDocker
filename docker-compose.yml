@@ -5,6 +5,7 @@ services:
     image: haproxy
     ports:
       - "8082:8080"
+    restart: always
     networks:
       marketplace:
         ipv4_address: 172.20.0.2 # Assign a static IP address to the lb service
@@ -15,6 +16,7 @@ services:
     image: orderservice
     environment:
       - APPID=1111
+    restart: always
     networks:
       marketplace:
         ipv4_address: 172.20.0.3 # Assign a static IP address to orderservice1
@@ -23,6 +25,7 @@ services:
     image: orderservice
     environment:
       - APPID=2222
+    restart: always
     networks:
       marketplace:
         ipv4_address: 172.20.0.4 # Assign a static IP address to orderservice2
@@ -31,6 +34,7 @@ services:
     image: orderservice
     environment:
       - APPID=3333
+    restart: always
     networks:
       marketplace:
         ipv4_address: 172.20.0.5 # Assign a static IP address to orderservice3
@@ -39,6 +43,7 @@ services:
     image: orderservice
     environment:
       - APPID=4444
+    restart: always
     networks:
       marketplace:
         ipv4_address: 172.20.0.6 # Assign a static IP address to orderservice4
