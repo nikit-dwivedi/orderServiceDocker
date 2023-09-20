@@ -1,25 +1,51 @@
-version : '3'
+version: '3'
 
 services:
-    lb:
-        image: haproxy
-        ports:
-            - "8082:8080"
-        volumes:
-            - ./haproxy:/usr/local/etc/haproxy
-    orderservice1:
-        image: orderservice
-        environment:
-            - APPID=1111
-    orderservice2:
-        image: orderservice
-        environment:
-            - APPID=2222
-    orderservice3:
-        image: orderservice
-        environment:
-            - APPID=3333
-    orderservice4:
-        image: orderservice
-        environment:
-            - APPID=4444
+  lb:
+    image: haproxy
+    ports:
+      - "8082:8080"
+    networks:
+      marketplace:
+        ipv4_address: 172.20.0.2 # Assign a static IP address to the lb service
+    volumes:
+      - ./haproxy:/usr/local/etc/haproxy
+
+  orderservice1:
+    image: orderservice
+    environment:
+      - APPID=1111
+    networks:
+      marketplace:
+        ipv4_address: 172.20.0.3 # Assign a static IP address to orderservice1
+
+  orderservice2:
+    image: orderservice
+    environment:
+      - APPID=2222
+    networks:
+      marketplace:
+        ipv4_address: 172.20.0.4 # Assign a static IP address to orderservice2
+
+  orderservice3:
+    image: orderservice
+    environment:
+      - APPID=3333
+    networks:
+      marketplace:
+        ipv4_address: 172.20.0.5 # Assign a static IP address to orderservice3
+
+  orderservice4:
+    image: orderservice
+    environment:
+      - APPID=4444
+    networks:
+      marketplace:
+        ipv4_address: 172.20.0.6 # Assign a static IP address to orderservice4
+
+networks:
+  marketplace:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16 # Define a subnet for your custom network named "marketplace"

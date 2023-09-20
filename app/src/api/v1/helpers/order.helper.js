@@ -168,7 +168,7 @@ module.exports = {
             await changeData.save()
             await sendNotification(changeData.outlet.sellerId, `You have recived an order on ${changeData.outlet.outletName}`, changeData.outlet.outletId)
             await sendCustomerNotification(changeData.client.clientId, `Your order from ${changeData.outlet.outletName} has placed successfully`, changeData.orderId)
-            await merchantNotification(orderId, changeData.outlet.sellerId)
+            await merchantNotification(`You have recived an order on ${changeData.outlet.outletName}`, changeData.outlet.sellerId)
             await adminNotification(orderId)
             return { status: true, message: "status changed", data: {} }
         } catch (error) {
@@ -198,14 +198,12 @@ module.exports = {
             if (changeData) {
                 let notificationMessage = customerNotificationMessage(orderStatus, changeData.outlet.outletName)
                 if (statusList.indexOf(orderStatus) <= statusList.indexOf(changeData.status) || ((statusList.indexOf(orderStatus) - statusList.indexOf(changeData.status)) != 1 && (orderStatus != 'accepted' && orderStatus != "ready"))) {
-                    console.log("=======");
                     return { status: false, message: "invalid status", data: {} }
                 }
                 if (orderStatus == 'accepted') {
                     orderStatus = 'preparing'
                 }
                 changeData.status = orderStatus
-                console.log(changeData);
                 changeData.timing.push({ status: orderStatus, time: formatTime(), date: formatDate() })
                 await changeData.save()
 
@@ -279,47 +277,41 @@ module.exports = {
             return false
         }
     },
-    getOrderCount: async (outletId) => {
+    getOrderCount: async (outletId, from, to) => {
         try {
             let date = new Date
             let a = date.getDate()
             let b = date.getMonth()
             let c = date.getFullYear()
-            let pendingCount = await orderModel.count({
-                'outlet.outletId': outletId, status: "pending", createdAt: {
+            const dateQuery = {
+                createdAt: {
                     $gte: new Date(c, b, a),
                     $lt: new Date(c, b, a + 1)
                 }
+            }
+            if (from && to) {
+                dateQuery.createdAt = {
+                    $gte: new Date(from),
+                    $lt: new Date(to)
+                }
+            }
+            let pendingCount = await orderModel.count({
+                'outlet.outletId': outletId, status: "pending", dateQuery
             })
             let preperingCount = await orderModel.count({
-                'outlet.outletId': outletId, status: "preparing", createdAt: {
-                    $gte: new Date(c, b, a),
-                    $lt: new Date(c, b, a + 1)
-                }
+                'outlet.outletId': outletId, status: "preparing", dateQuery
             })
             let readyCount = await orderModel.count({
-                'outlet.outletId': outletId, status: "ready", createdAt: {
-                    $gte: new Date(c, b, a),
-                    $lt: new Date(c, b, a + 1)
-                }
+                'outlet.outletId': outletId, status: "ready", dateQuery
             })
             let dispatchedCount = await orderModel.count({
-                'outlet.outletId': outletId, status: "dispatched", createdAt: {
-                    $gte: new Date(c, b, a),
-                    $lt: new Date(c, b, a + 1)
-                }
+                'outlet.outletId': outletId, status: "dispatched", dateQuery
             })
             let deliveredCount = await orderModel.count({
-                'outlet.outletId': outletId, status: "delivered", createdAt: {
-                    $gte: new Date(c, b, a),
-                    $lt: new Date(c, b, a + 1)
-                }
+                'outlet.outletId': outletId, status: "delivered", dateQuery
             })
             let cancelledCount = await orderModel.count({
-                'outlet.outletId': outletId, status: "cancelled", createdAt: {
-                    $gte: new Date(c, b, a),
-                    $lt: new Date(c, b, a + 1)
-                }
+                'outlet.outletId': outletId, status: "cancelled", dateQuery
             })
             return { pendingCount, preperingCount, readyCount, dispatchedCount, deliveredCount, cancelledCount }
         }
@@ -371,8 +363,44 @@ module.exports = {
                     $lt: new Date(c, b, a + 1)
                 }
             }
+
+            const orderCount = await orderModel.aggregate([
+                {
+                    $match: {
+                        "outlet.outletId": outletId,
+                        createdAt: {
+                            $gte: query.createdAt['$gte'],
+                            $lt: query.createdAt['$lt']
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$status',
+                        count: {
+                            $sum: 1
+                        }
+                    }
+                }
+            ])
+            // .select('-_id -__v -productList._id -client._id -outlet._id -patner._id -amount._id -timing._id -createdAt -updatedAt')
             const orderData = await orderModel.find(query).select('-_id -__v -productList._id -client._id -outlet._id -patner._id -amount._id -timing._id -createdAt -updatedAt')
-            return orderData[0] ? { status: true, message: "order list", data: orderData.reverse() } : { status: false, message: "no orders found", data: orderData };
+            const returnData = { orderData: orderData.reverse(), orderCount }
+            return orderData[0] ? { status: true, message: "order list", data: returnData } : { status: false, message: "no orders found", data: orderData };
+        } catch (error) {
+            console.log(error); return { status: false, message: error.message, data: [] }
+        }
+    },
+    getAllOrderDumpByOutletId: async (outletId) => {
+        try {
+
+            let status = ["pending", "preparing", "assigned", 'ready', 'dispatched', 'delivered', 'cancelled']
+            let query = {
+                "outlet.outletId": { $in: outletId },
+                status: status
+            }
+            const orderData = await orderModel.find(query).select('-_id -__v -productList._id -client._id -outlet._id -patner._id -amount._id -timing._id -createdAt -updatedAt')
+            return orderData[0] ? { status: true, message: "order list", data: orderData } : { status: false, message: "no orders found", data: orderData };
         } catch (error) {
             console.log(error); return { status: false, message: error.message, data: [] }
         }
@@ -394,16 +422,17 @@ module.exports = {
                     $lt: new Date(to)
                 }
             }
-            const orderData = await orderModel.find(query).select('-_id -__v -productList._id -client._id -outlet._id -patner._id -amount._id -timing._id -createdAt').lean()
+            const orderData = await orderModel.find(query).select('-_id -__v -productList._id -client._id -outlet._id -patner._id -amount._id -timing._id -updatedAt').sort({ _id: -1 }).lean()
             let newList = orderData.map((order) => {
-                order.date = moment(order.updatedAt).calendar(null, {
+                const date = new Date(order.createdAt).getFullYear()
+                console.log(order.timing[1].date + " " + date + " " + order.timing[1].time);
+                order.date = moment(order.timing[1].date + " " + date + " " + order.timing[1].time).calendar(null, {
                     sameDay: '[Today] h:m A',
                     lastDay: '[Yesterday] h:m A',
                     lastWeek: '[Last] dddd h:m A',
                     sameElse: 'MMM DD, YYYY h:m A'
                 });
-                console.log(order.date);
-                delete order.updatedAt
+                delete order.createdAt
                 return order
             })
             return newList[0] ? { status: true, message: "order list", data: newList.reverse() } : { status: false, message: "no orders found", data: newList };
@@ -511,6 +540,77 @@ module.exports = {
                 returnList = [{ status: key, count: value }, ...returnList]
             })
             return { status: true, message: "order count", data: returnList }
+        } catch (error) {
+            return { status: false, message: error.message, data: error }
+        }
+    },
+    performance: async (sellerId) => {
+        try {
+            let d = new Date
+            let a = d.getDate()
+            let b = d.getMonth()
+            let c = d.getFullYear()
+            let performanceData = await orderModel.aggregate([
+                {
+                    $match: {
+                        createdAt: {
+                            $gte: new Date(c, b, a),
+                            $lt: new Date(c, b, a + 1)
+                        },
+                        'status': {
+                            $ne: "init"
+                        },
+                        'outlet.sellerId': sellerId
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalOrder: { $sum: 1 },
+                        orderValue: {
+                            $sum: {
+                                $cond: {
+                                    if: { $eq: ['$status', 'delivered'] },
+                                    then: '$amount.totalAmount',
+                                    else: 0
+                                }
+                            }
+                        },
+                        orderStatus: { $push: '$status' },
+                        newCustomer: {
+                            $addToSet: '$client.clientId'
+                        }
+                    }
+                },
+                {
+                    $set: {
+                        customerCount: { $size: '$newCustomer' },
+                        cancelledOrder: {
+                            $size: {
+                                $filter: {
+                                    input: '$orderStatus',
+                                    as: 'review',
+                                    cond: {
+                                        $eq: ['$$review', 'cancelled']
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        totalOrder: 1,
+                        orderValue: 1,
+                        customerCount: 1,
+                        cancelledOrder: 1,
+                    }
+                }
+            ])
+            performanceData = performanceData[0] ? performanceData[0] : { "totalOrder": 0, "orderValue": 0, "customerCount": 0, "cancelledOrder": 0 }
+            return performanceData ? { status: true, message: "performance Detail", data: performanceData } : { status: false, message: "no performance" }
+
         } catch (error) {
             return { status: false, message: error.message, data: error }
         }

@@ -1,5 +1,5 @@
 const { orderInitFormatter, changeCartFormatter } = require("../formatter/order.format");
-const { genrateOtpPhone, addAuth, verifyOtp, checkAuthByPhone, checkAuthByEmail, genrateOtpEmail, checkLogin, getProductList, getOutletDetails, getCustomerDetails, addOrder, getTodaysOrder, changeStatus, getOrderCount, orderByOrderId, getAllOrderByOutletId, updateOrder, updateCartOrder, initOrderFromCart, getDiscountDetails, getSellerOutlet, changeToPending, getCustomerOrderDetails, getCustomerCurrentOrder, addPartnerDetails, changeStatusFromDelivery, getCartDetails, checkOrderPaymentMode, changeOrderRatingStatus, pendingRatingList, changeMPOrderId, getAllOrder, orderByMPOrderId, totalOrderCount } = require("../helpers/order.helper")
+const { genrateOtpPhone, addAuth, verifyOtp, checkAuthByPhone, checkAuthByEmail, genrateOtpEmail, checkLogin, getProductList, getOutletDetails, getCustomerDetails, addOrder, getTodaysOrder, changeStatus, getOrderCount, orderByOrderId, getAllOrderByOutletId, updateOrder, updateCartOrder, initOrderFromCart, getDiscountDetails, getSellerOutlet, changeToPending, getCustomerOrderDetails, getCustomerCurrentOrder, addPartnerDetails, changeStatusFromDelivery, getCartDetails, checkOrderPaymentMode, changeOrderRatingStatus, pendingRatingList, changeMPOrderId, getAllOrder, orderByMPOrderId, totalOrderCount, getAllOrderDumpByOutletId, performance } = require("../helpers/order.helper")
 const { unknownError, success, badRequest } = require("../helpers/response_helper");
 const { parseJwt } = require("../middlewares/authToken");
 const { get, post } = require("../services/axios.service");
@@ -73,15 +73,15 @@ module.exports = {
                 return badRequest(res, orderModeCheck.message)
             }
             let paymentData = { orderId: mpOrderId, paymentMode: "Cod", paymentStatus: "Not Collected", method: "Cash" }
-            const paymentInitEndpoint = paymentCheckUrl(mpOrderId,orderModeCheck.data);
+            const paymentInitEndpoint = paymentCheckUrl(mpOrderId, orderModeCheck.data);
             let paymentResponse = await get(paymentInitEndpoint, req.headers.authorization)
             if (!paymentResponse.status) {
                 return badRequest(res, paymentResponse.message)
             }
             if (orderModeCheck.data) {
                 paymentData.paymentMode = "online",
-                paymentData.paymentStatus = paymentResponse.items.status,
-                paymentData.method = paymentResponse.items.method
+                    paymentData.paymentStatus = paymentResponse.items.status,
+                    paymentData.method = paymentResponse.items.method
             }
             let { status, message, data } = await changeToPending(paymentData)
             return status ? success(res, message) : badRequest(res, message)
@@ -102,8 +102,9 @@ module.exports = {
     },
     getOutletOrderCount: async (req, res) => {
         try {
-            const { outletId } = req.params
-            let data = await getOrderCount(outletId);
+            const { outletId, } = req.params
+            const { from, to } = req.query
+            let data = await getOrderCount(outletId, from, to);
             return data ? success(res, "order list", data) : badRequest(res, "no order found");
         } catch (error) {
             return unknownError(res, error.message)
@@ -152,23 +153,27 @@ module.exports = {
             const { from, to } = req.query
             const orderStatus = ["pending", 'preparing', 'ready', 'dispatched', 'delivered']
             let { status, message, data } = await getAllOrderByOutletId(outletId, orderStatus, from, to)
-            let totalSale = data.reduce((total, currentList) => {
+            if (!status) {
+                let returnData = { totalSale: 0, orderCount: 0, totalDiscount: 0, netProfit: 0 }
+                return success(res, "outlet profit", returnData)
+            }
+            let totalSale = data?.orderData.reduce((total, currentList) => {
                 {
                     return total + currentList.amount.totalAmount
                 }
             }, 0)
-            let netProfit = data.reduce((total, currentList) => {
+            let netProfit = data?.orderData.reduce((total, currentList) => {
                 {
                     let sellerAmount = currentList.amount.totalAmount - currentList.amount.discountedAmount
                     return total + sellerAmount
                 }
             }, 0)
-            let totalDiscount = data.reduce((total, currentList) => {
+            let totalDiscount = data.orderData.reduce((total, currentList) => {
                 {
                     return total + currentList.amount.discountedAmount
                 }
             }, 0)
-            let returnData = { totalSale, orderCount: data.length, totalDiscount, netProfit }
+            let returnData = { totalSale, orderCount: data.orderData.length, totalDiscount, netProfit }
             success(res, "outlet profit", returnData)
         } catch (error) {
             return unknownError(res, error.message)
@@ -183,13 +188,39 @@ module.exports = {
                 return badRequest(res, "Seller don't have any outlet")
             }
             let orderList = await Promise.all(sellerOutletList.map(async (outletData) => {
-                let orderData = await getAllOrderByOutletId(outletData.outletId, orderStatus)
+                let orderData = await getAllOrderByOutletId(outletData.outletId, orderStatus, from, to)
                 return orderData.data
             }))
             let mainList = orderList.reduce((previousList, currentList) => {
-                return [...previousList, ...currentList]
-            })
-            return mainList[0] ? success(res, "order list", mainList) : badRequest(res, "no order found")
+                if (!currentList?.orderCount && !currentList[0]) {
+                    return previousList
+                }
+                let statusMap = new Map(currentList.orderCount.map((orderStatus) => [orderStatus._id, orderStatus.count]))
+                let preparingPlusAssigned = statusMap.get("preparing") && statusMap.get("assigned") ? statusMap.get("preparing") + statusMap.get("assigned") : statusMap.get("preparing") ?? statusMap.get("assigned")
+                statusMap.set("preparing", preparingPlusAssigned)
+                previousList.pending = statusMap.get("pending") ? previousList.pending + statusMap.get("pending") : previousList.pending;
+                previousList.preparing = statusMap.get("preparing") ? previousList.preparing + statusMap.get("preparing") : previousList.preparing;
+                previousList.ready = statusMap.get("ready") ? previousList.ready + statusMap.get("ready") : previousList.pending;
+                previousList.dispatched = statusMap.get("dispatched") ? previousList.dispatched + statusMap.get("dispatched") : previousList.dispatched;
+
+                previousList.orderList = [...previousList.orderList, ...currentList?.orderData]
+                return previousList
+            }, { pending: 0, preparing: 0, ready: 0, dispatched: 0, orderList: [] })
+            return mainList ? success(res, "order list", mainList) : badRequest(res, "no order found")
+        } catch (error) {
+            return unknownError(res, error.message)
+        }
+    },
+    allOrderDumpOfSeller: async (req, res) => {
+        try {
+            const token = req.headers.authorization
+            const sellerOutletList = await getSellerOutlet(token)
+            if (!sellerOutletList) {
+                return badRequest(res, "Seller don't have any outlet")
+            }
+            let outletIdList = sellerOutletList.map(outlet => outlet.outletId)
+            let { status, message, data } = await getAllOrderDumpByOutletId(outletIdList)
+            return status ? success(res, message, data) : badRequest(res, message)
         } catch (error) {
             return unknownError(res, error.message)
         }
@@ -205,8 +236,12 @@ module.exports = {
                 return orderData.data
             }))
             let mainList = orderList.reduce((previousList, currentList) => {
-                return [...previousList, ...currentList]
-            })
+                if (!currentList.orderData) {
+                    return previousList
+
+                }
+                return [...previousList, ...currentList.orderData]
+            }, [])
             let totalSale = mainList.reduce((total, currentList) => {
                 {
                     return total + currentList.amount.totalAmount
@@ -226,6 +261,7 @@ module.exports = {
             let returnData = { totalSale, orderCount: mainList.length, totalDiscount, netProfit }
             return success(res, "Profit detail", returnData)
         } catch (error) {
+            console.log(error);
             return unknownError(res, error.message)
         }
     },
@@ -252,6 +288,15 @@ module.exports = {
             const { taskId, partnerData, orderId } = req.body
             const { status, message } = await addPartnerDetails(orderId, partnerData, taskId)
             return status ? success(res, message) : badRequest(res, message)
+        } catch (error) {
+            return unknownError(res, error.message)
+        }
+    },
+    sellerPerformance: async (req, res) => {
+        try {
+            const token = parseJwt(req.headers.authorization)
+            const { status, message, data } = await performance(token.customId)
+            return status ? success(res, message, data) : badRequest(res, message)
         } catch (error) {
             return unknownError(res, error.message)
         }

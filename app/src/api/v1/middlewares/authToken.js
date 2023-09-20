@@ -253,7 +253,6 @@ function verifyToken(token, publicKey, verifyOption, decode, res) {
     res.tokenInfo = { token, shouldChange }
     return
   } catch (error) {
-    console.log(error);
     throw new Error(error.message)
   }
 }

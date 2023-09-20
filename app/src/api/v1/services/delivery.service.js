@@ -5,7 +5,6 @@ exports.assignPartner = async (orderData,) => {
     try {
         const url = assignTaskToPartner()
         const response = await post(url, orderData)
-        console.log(response)
     } catch (error) {
         console.log(error.message);
     }
@@ -20,7 +19,6 @@ exports.unassignPartner = async (orderId, token) => {
         }
         const header = { Authorization: token }
         const response = await post(url, bodyData, header)
-        console.log(response)
     } catch (error) {
         console.log(error.message);
     }

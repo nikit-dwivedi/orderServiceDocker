@@ -1,5 +1,5 @@
 const express = require('express');
-const { orderInit, todayOrder, changeOrderStatus, getOutletOrderCount, getOrderDetail, allOrderOfOutlet, cartOrder, allOrderOfSeller, markOrderSuccess, allProfitOfSeller, allProfitOfOutlet, customerOrderHistory, customerCurrentOrder, addPartnerToOrder, changeOrderFromPartner, rateOrder, pendingRatingListOfUser, allOrder, getMPOrderDetail, orderStat } = require('../controllers/order.controller');
+const { orderInit, todayOrder, changeOrderStatus, getOutletOrderCount, getOrderDetail, allOrderOfOutlet, cartOrder, allOrderOfSeller, markOrderSuccess, allProfitOfSeller, allProfitOfOutlet, customerOrderHistory, customerCurrentOrder, addPartnerToOrder, changeOrderFromPartner, rateOrder, pendingRatingListOfUser, allOrder, getMPOrderDetail, orderStat, allOrderDumpOfSeller, sellerPerformance } = require('../controllers/order.controller');
 const { authenticateUser, authenticateSeller, authenticateGuest, authenticateAdmin } = require('../middlewares/authToken');
 const router = express.Router();
 
@@ -13,6 +13,8 @@ router.get('/count/:outletId', getOutletOrderCount);
 router.get('/outlet/:outletId', allOrderOfOutlet)
 router.get('/outlet/:outletId/profit', allProfitOfOutlet)
 router.get('/seller', authenticateSeller, allOrderOfSeller);
+router.get('/seller/performance', authenticateSeller, sellerPerformance);
+router.get('/seller/dump', authenticateSeller, allOrderDumpOfSeller);
 router.get('/customer/history', authenticateUser, customerOrderHistory);
 router.get('/customer/running', authenticateUser, customerCurrentOrder);
 router.get('/seller/profit', authenticateSeller, allProfitOfSeller)
