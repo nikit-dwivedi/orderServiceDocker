@@ -422,7 +422,7 @@ module.exports = {
                     $lt: new Date(to)
                 }
             }
-            const orderData = await orderModel.find(query).select('-_id -__v -productList._id -client._id -outlet._id -patner._id -amount._id -timing._id -updatedAt').sort({ _id: -1 }).lean()
+            const orderData = await orderModel.find(query).select('-_id -__v -productList._id -client._id -outlet._id -patner._id -amount._id -timing._id -updatedAt').sort({ createdAt: -1 }).lean()
             let newList = orderData.map((order) => {
                 const date = new Date(order.createdAt).getFullYear()
                 const orderData = order.timing[1] ? order.timing[1] : order.timing[0];
@@ -435,7 +435,7 @@ module.exports = {
                 delete order.createdAt
                 return order
             })
-            return newList[0] ? { status: true, message: "order list", data: newList.reverse() } : { status: false, message: "no orders found", data: newList };
+            return newList[0] ? { status: true, message: "order list", data: newList} : { status: false, message: "no orders found", data: newList };
         } catch (error) {
             console.log(error); return { status: false, message: error.message, data: [] }
         }
