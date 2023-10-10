@@ -425,8 +425,8 @@ module.exports = {
             const orderData = await orderModel.find(query).select('-_id -__v -productList._id -client._id -outlet._id -patner._id -amount._id -timing._id -updatedAt').sort({ _id: -1 }).lean()
             let newList = orderData.map((order) => {
                 const date = new Date(order.createdAt).getFullYear()
-                console.log(order.timing[1].date + " " + date + " " + order.timing[1].time);
-                order.date = moment(order.timing[1].date + " " + date + " " + order.timing[1].time).calendar(null, {
+                const orderData = order.timing[1] ? order.timing[1] : order.timing[0];
+                order.date = moment(orderData.date + " " + date + " " + orderData.time).calendar(null, {
                     sameDay: '[Today] h:m A',
                     lastDay: '[Yesterday] h:m A',
                     lastWeek: '[Last] dddd h:m A',
