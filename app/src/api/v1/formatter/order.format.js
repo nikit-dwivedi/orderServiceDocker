@@ -3,46 +3,10 @@ const { encryption } = require('../middlewares/authToken');
 
 module.exports = {
     orderInitFormatter: (clientData, productList, amountData, outletData) => {
-        // console.log('+++++++++++++++++++++++++++++');
-        // console.log(clientData, productList, amountData, outletData);
-        // console.log('+++++++++++++++++++++++++++++');
         const formmatedTime = formatTime()
         const formattedDate = formatDate()
         const orderId = randomBytes(4).toString('hex')
-
-        // //---------discount-Charge
-        // let discountedAmount = 0
-        // if (amountData.discountData) {
-        //     if (amountData.totalAmount >= amountData.discountData.minAmount) {
-        //         discountedAmount = (amountData.totalAmount * amountData.discountData.discountPercent) / 100
-        //         if (!amountData.discountData.isFlatDiscount && discountedAmount > amountData.discountData.maxDiscount) {
-        //             discountedAmount = amountData.discountData.maxDiscount
-        //         }
-        //     }
-        // }
-
-        // //----------delivery-charge
         let distance = distanceCalculator(clientData.longitude, clientData.latitude, outletData.longitude, outletData.latitude)
-        // let deliveryCharge = 25
-        // if (distance > 1.8) {
-        //     if (distance <= 4) {
-        //         deliveryCharge = distance * 10
-        //     } else if (4 < distance <= 8) {
-        //         let extraDistance = distance - 4
-        //         deliveryCharge = (4 * 10) + (extraDistance * 11.5)
-        //     } else {
-        //         let extraDistance = distance - 8
-        //         deliveryCharge = (4 * 10) + (4 * 11.5)(extraDistance * 12.5)
-        //     }
-        // }
-
-        // //-----------tax-charge
-        // let taxAmount = (amountData.totalAmount * 5) / 100
-
-        // //-----------payable-amount
-        // let payableAmount = (amountData.totalAmount + taxAmount + amountData.deliveryTip + deliveryCharge) - discountedAmount
-
-
         return {
             orderId: orderId,
             productList: productList,
