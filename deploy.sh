@@ -8,8 +8,7 @@
 
 # Pull the latest code from the Git repository
 expect -c "
-pwd
-spawn git pull
+spawn spawn /usr/bin/git pull
 expect \"Username for 'https://github.com':\"
 send \"nikit-dwivedi\r\"
 expect \"Password for 'https://nikit-dwivedi@github.com':\"
