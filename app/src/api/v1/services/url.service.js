@@ -10,6 +10,8 @@ const notificationBaseProd = 'https://notification.fablocdn.com'
 // const paymentBaseProd = 'https://user.fablocdn.com'
 const deliveryBaseProd = 'https://delivery.fablocdn.com'
 const cartBaseProd = 'https://cart.fablocdn.com'
+const paymentBaseProd = 'http://payment.fablocdn.com'
+
 
 
 module.exports = {
@@ -43,7 +45,7 @@ module.exports = {
         return `${paymentBaseStage}/payment/createPayment`
     },
     paymentCheckUrl: (mpOrderId,check) => {
-        return check?`${paymentBaseStage}/payment/check/${mpOrderId}?type=0`:`${paymentBaseStage}/payment/check/${mpOrderId}?type=1`
+        return check?`${paymentBaseProd}/payment/check/${mpOrderId}?type=0`:`${paymentBaseStage}/payment/check/${mpOrderId}?type=1`
     },
     discountDataUrl: (discountId) => {
         return `${inventoryBaseUrlProd}/v1/discount/${discountId}`
