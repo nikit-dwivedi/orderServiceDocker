@@ -74,6 +74,7 @@ module.exports = {
             }
             let paymentData = { orderId: mpOrderId, paymentMode: "Cod", paymentStatus: "Not Collected", method: "Cash" }
             const paymentInitEndpoint = paymentCheckUrl(mpOrderId, orderModeCheck.data);
+            console.log(paymentInitEndpoint);
             let paymentResponse = await get(paymentInitEndpoint, req.headers.authorization)
             if (!paymentResponse.status) {
                 return badRequest(res, paymentResponse.message)

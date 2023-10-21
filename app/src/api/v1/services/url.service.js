@@ -6,7 +6,7 @@ const deliveryBaseStage = 'http://139.59.60.119:4489'
 const cartBaseStage = 'http://139.59.60.119:3123'
 const inventoryBaseUrlProd = 'https://inventory.fablocdn.com'
 const userBaseProd = 'https://user.fablocdn.com'
-const notificationBaseProd = 'https://notification.fablocdn.com'
+const notificationBaseProd = 'https://notify.fablocdn.com'
 // const paymentBaseProd = 'https://user.fablocdn.com'
 const deliveryBaseProd = 'https://delivery.fablocdn.com'
 const cartBaseProd = 'https://cart.fablocdn.com'
@@ -42,10 +42,10 @@ module.exports = {
         return `${notificationBaseProd}/v1/seller/status`
     },
     paymentInitUrl: () => {
-        return `${paymentBaseStage}/payment/createPayment`
+        return `${paymentBaseProd}/payment/createPayment`
     },
     paymentCheckUrl: (mpOrderId,check) => {
-        return check?`${paymentBaseProd}/payment/check/${mpOrderId}?type=0`:`${paymentBaseStage}/payment/check/${mpOrderId}?type=1`
+        return check?`${paymentBaseProd}/payment/check/${mpOrderId}?type=0`:`${paymentBaseProd}/payment/check/${mpOrderId}?type=1`
     },
     discountDataUrl: (discountId) => {
         return `${inventoryBaseUrlProd}/v1/discount/${discountId}`
