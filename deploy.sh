@@ -15,17 +15,29 @@ expect \"Password for 'https://nikit-dwivedi@github.com':\"
 send \"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\r\"
 expect eof
 "
-
 # Build the Docker image from the Dockerfile in the current directory
+echo "______________________________________________________________________"
 echo "Building the Docker image..."
+echo "______________________________________________________________________"
+
 docker build -t orderservice .
 
+
+
 # Stop and remove the old Docker container and image
-echo "Stopping and removing the old Docker container"
+echo "______________________________________________________________________"
+echo "Stopping and removing the old Docker container..."
+echo "______________________________________________________________________"
+
 docker-compose down
 
 # Run Docker Compose with the new image
+echo "______________________________________________________________________"
 echo "Running Docker Compose with the new image..."
+echo "______________________________________________________________________"
 docker-compose up -d
 
+
+echo "______________________________________________________________________"
 echo "Done!"
+echo "______________________________________________________________________"
