@@ -8,6 +8,7 @@
 
 # Pull the latest code from the Git repository
 expect -c "
+pwd
 spawn git pull
 expect \"Username for 'https://github.com':\"
 send \"nikit-dwivedi\r\"
@@ -36,6 +37,13 @@ echo "______________________________________________________________________"
 echo "Running Docker Compose with the new image..."
 echo "______________________________________________________________________"
 docker-compose up -d
+
+
+# Remove Old Docker image
+echo "______________________________________________________________________"
+echo "Removing Old Docker image..."
+echo "______________________________________________________________________"
+docker rmi $(docker images -f "dangling=true" -q)
 
 
 echo "______________________________________________________________________"
