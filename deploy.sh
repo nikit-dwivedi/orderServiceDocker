@@ -17,7 +17,7 @@ echo "Building the Docker image..."
 docker build -t orderservice .
 
 # Stop and remove the old Docker container and image
-echo "Stopping and removing the old Docker container and image..."
+echo "Stopping and removing the old Docker container"
 docker-compose down
 
 # Run Docker Compose with the new image
