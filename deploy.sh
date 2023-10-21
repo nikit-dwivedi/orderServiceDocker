@@ -7,7 +7,7 @@
 
 
 # Pull the latest code from the Git repository
-git pull "https://nikit-dwivedi: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@github.com/Jet/orderServiceDocker.git" main
+git pull "https://nikit-dwivedi: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@github.com/nikit-dwivedi/orderServiceDocker.git" main
 
 # expect -c "
 # spawn /usr/bin/git pull
