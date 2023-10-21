@@ -7,10 +7,14 @@
 
 
 # Pull the latest code from the Git repository
-echo "Pulling the latest code from the Git repository..."
-git pull
-echo "nikit-dwivedi"
-echo "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"
+expect -c "
+spawn git pull
+expect \"Username for 'https://github.com':\"
+send \"nikit-dwivedi\r\"
+expect \"Password for 'https://nikit-dwivedi@github.com':\"
+send \"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\r\"
+expect eof
+"
 
 # Build the Docker image from the Dockerfile in the current directory
 echo "Building the Docker image..."
