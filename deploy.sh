@@ -7,14 +7,16 @@
 
 
 # Pull the latest code from the Git repository
-git pull
-expect -c "
-expect \"Username for 'https://github.com':\"
-send \"nikit-dwivedi\r\"
-expect \"Password for 'https://nikit-dwivedi@github.com':\"
-send \"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\r\"
-expect eof
-"
+git pull "https://nikit-dwivedi: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@github.com/Jet/orderServiceDocker.git" main
+
+# expect -c "
+# spawn /usr/bin/git pull
+# expect \"Username for 'https://github.com':\"
+# send \"nikit-dwivedi\r\"
+# expect \"Password for 'https://nikit-dwivedi@github.com':\"
+# send \"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\r\"
+# expect eof
+# "
 # Build the Docker image from the Dockerfile in the current directory
 echo "______________________________________________________________________"
 echo "Building the Docker image..."
