@@ -16,7 +16,8 @@ module.exports = {
                 clientPhone: clientData.phone,
                 clientAddress: clientData.address,
                 clientLongitude: clientData.longitude,
-                clientLatitude: clientData.latitude
+                clientLatitude: clientData.latitude,
+                isCODEnable: clientData.isCODEnable
             },
             outlet: {
                 sellerId: outletData.sellerId,

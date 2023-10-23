@@ -33,6 +33,9 @@ const clientSchema = new Schema({
     },
     clientLatitude: {
         type: Number
+    },
+    isCODEnable: {
+        type: Boolean
     }
 })
 

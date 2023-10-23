@@ -125,6 +125,11 @@ module.exports = {
             if (changeData.status !== 'init') {
                 return { status: false, message: "order already placed", data: {} }
             }
+            if (isCod && !changeData.client.isCODEnable) {
+                return {
+                    status: false, message: "COD not available for this user", data: {}
+                }
+            }
             let mpOrderId = randomBytes(4).toString('hex')
             let paymentMode = isCod ? "cash" : "online"
             let updatedData = await orderModel.findOneAndUpdate({ orderId }, { mpOrderId, "payment.paymentMode": paymentMode }, { new: true })
