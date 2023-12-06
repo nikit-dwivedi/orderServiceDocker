@@ -4,7 +4,7 @@ const { sellerOrderNotificationUrl, sellerStatusNotificationUrl, customerOrderNo
 exports.sendNotification = async (sellerId, message, outletId) => {
     try {
         let data = {
-            app_id: "73beb105-9dca-45eb-8f7c-479ddc15cb43",
+            app_id: "",
             contents: { "en": `${message}` },
             headings: { "en": `New order received` },
             data: { outletId },
@@ -12,7 +12,7 @@ exports.sendNotification = async (sellerId, message, outletId) => {
         };
         let headers = {
             "Content-Type": "application/json; charset=utf-8",
-            "Authorization": "Basic NzcyZTY5OTMtMDkzYi00ODY3LWIwM2EtNWRhOTMxYjZlMGEw"
+            "Authorization": ""
         };
 
         let options = {
@@ -43,7 +43,7 @@ exports.sendNotification = async (sellerId, message, outletId) => {
 exports.sendCustomerNotification = async (customerId, message, orderId) => {
     try {
         let data = {
-            app_id: "089e033e-f4bc-4082-aa7d-ece18822d553",
+            app_id: "",
             contents: { "en": `${message}` },
             headings: { "en": `Order updates` },
             data: { orderId },
@@ -51,7 +51,7 @@ exports.sendCustomerNotification = async (customerId, message, orderId) => {
         };
         let headers = {
             "Content-Type": "application/json; charset=utf-8",
-            "Authorization": "Basic NWRjNTcxZGEtMWM2YS00ZTg1LThhOGYtZjc4NDM3NzI4NmMx"
+            "Authorization": ""
         };
 
         let options = {

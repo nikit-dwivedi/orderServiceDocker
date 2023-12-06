@@ -9,7 +9,7 @@ const sendMail = async (email, otp) => {
         const msg = {
             to: email,
             from: 'nikitdwivedi@fabloplatforms.com',
-            templateId: 'd-4aae71d774b945e48cf3c6cdbc8dee0e',
+            templateId: '',
             dynamicTemplateData: {
                 otp: otp,
             },
